@@ -48,6 +48,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final List<Transaction> _transactions = [];
+  bool _showChart = false;
 
   List<Transaction> get _recentTransactons {
     return _transactions.where((tr) {
@@ -89,22 +90,55 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Despesas Pessoais'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.add),
-            onPressed: () => _openTransactionFormModal(context),
-          )
-        ],
+    bool isLnadscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
+    final appBar = AppBar(
+      title: Text(
+        'Despesas Pessoais',
       ),
+      actions: [
+        IconButton(
+          icon: Icon(Icons.add),
+          onPressed: () => _openTransactionFormModal(context),
+        )
+      ],
+    );
+
+    final availableHeight = MediaQuery.of(context).size.height -
+        appBar.preferredSize.height -
+        MediaQuery.of(context).padding.top;
+
+    return Scaffold(
+      appBar: appBar,
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Chart(_recentTransactons),
-            TransactionList(_transactions, _deleteTransaction),
+            if (isLnadscape)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('Exibir Gráfico'),
+                  Switch(
+                    value: _showChart,
+                    onChanged: (value) {
+                      setState(() {
+                        _showChart = value;
+                      });
+                    },
+                  ),
+                ],
+              ),
+            if (_showChart || !isLnadscape)
+              Container(
+                height: availableHeight * (isLnadscape ? 0.7 : 0.30),
+                child: Chart(_recentTransactons),
+              ),
+            if (!_showChart || !isLnadscape)
+              Container(
+                height: availableHeight * 0.70,
+                child: TransactionList(_transactions, _deleteTransaction),
+              ),
           ],
         ),
       ),
